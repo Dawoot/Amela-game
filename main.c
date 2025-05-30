@@ -24,7 +24,7 @@ int main(){
     player_camera.rotation = 0.0f;
 
     while (!WindowShouldClose()) {
-
+        //For movement
         float dt = GetFrameTime();
         if (IsKeyDown(KEY_D)) {
             speed_x = 10 + dt;
@@ -63,7 +63,9 @@ int main(){
         playerpos_x = speed_x + playerpos_x;
         playerpos_y = speed_y + playerpos_y;
         }
+        //Camera
         player_camera.target = (Vector2){player_width + 20.0f, player_height + 20.0f};
+        //updating drawing
         BeginDrawing();
         ClearBackground(RED);
         DrawTexture(player, playerpos_x, playerpos_y, BLACK);
@@ -71,6 +73,7 @@ int main(){
         EndMode2D();
         EndDrawing();
     }
+    UnloadTexture(player);
     CloseWindow();
     return 0;
 }
