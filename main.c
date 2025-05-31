@@ -6,6 +6,13 @@
 #define FPS 144
 #define window_width 1920
 #define window_height 1080
+#define TILE_EMPTY 0
+#define TILE_WALL 1      // Collision
+#define TILE_FLOOR 2     // No collision
+#define TILE_OBSTACLE 3  // Collision
+#define TILE_WATER 4     // No collision
+#define TILE_LAVA 5   
+
 
 int **map;
 
@@ -25,6 +32,7 @@ void initializetiledmap(int gridwidth, int gridheight){
         }
     }
 }
+        
 void loadmap(char *filename, int gridwidth, int gridheight){
     FILE *file;
     file = fopen(filename, "rb");
@@ -41,83 +49,175 @@ void loadmap(char *filename, int gridwidth, int gridheight){
     for (int i = 0; i<gridheight; i++) {
     fread(map[i], sizeof(int), gridwidth, file);    
     }
-    for (int y = 0; y<gridheight; y++) {
-    for (int x = 0; x<gridwidth; x++) {
-            printf("Mapvalue at: y:%d x:%d  value:%d\n", y,x,map[y][x]);
-    }
-    }
     fclose(file);
 }
+        
 void freemapmem(int gridwidth, int gridheight){
     for (int y = 0; y<gridheight; y++) {
     free(map[y]);
     }
     free(map);
 }
+typedef struct player{
+    Vector2 position;
+    Texture2D texture;
+}player_t;
+void freerectmem(Rectangle **rect, int gridheight) {
+    for (int y = 0; y < gridheight; y++) {
+        free(rect[y]);
+    }
+    free(rect);
+}
+bool isSolidTile(int tileType) {
+    switch(tileType) {
+        case TILE_WALL:
+        case TILE_OBSTACLE:
+        case TILE_LAVA:
+            return true;
+        default:
+            return false;
+    }
+}
 
+// Check collision between player and map tiles
+bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle **rect, int gridwidth, int gridheight, int blocksize) {
+    // Create player rectangle at new position
+    Rectangle playerRect = {
+        newPosition.x,
+        newPosition.y,
+        (float)playerTexture.width,
+        (float)playerTexture.height
+    };
+    
+    // Calculate which tiles the player might overlap with
+    int startX = (int)(newPosition.x / blocksize);
+    int endX = (int)((newPosition.x + playerTexture.width) / blocksize);
+    int startY = (int)((newPosition.y - 100) / blocksize); // -100 because tiles start at y=100
+    int endY = (int)((newPosition.y + playerTexture.height - 100) / blocksize);
+    
+    // Clamp to grid bounds
+    startX = (startX < 0) ? 0 : startX;
+    endX = (endX >= gridwidth) ? gridwidth - 1 : endX;
+    startY = (startY < 0) ? 0 : startY;
+    endY = (endY >= gridheight) ? gridheight - 1 : endY;
+    
+    // Check collision with each potentially overlapping tile
+    for (int y = startY; y <= endY; y++) {
+        for (int x = startX; x <= endX; x++) {
+            if (isSolidTile(map[y][x])) {
+                if (CheckCollisionRecs(playerRect, rect[y][x])) {
+                    return true; // Collision detected
+                }
+            }
+        }
+    }
+    
+    return false; // No collision
+}
 int main(){
-    Texture2D player;
     int blocksize = 100;
     int gridwidth = window_width/blocksize;
     int gridheight = (window_height-100)/blocksize;
+
     initializetiledmap(gridwidth, gridheight);
+    
     InitWindow(window_width, window_height, "Love to amela");
+    
     loadmap("map.bin", gridwidth, gridheight);
+
     Color palette[] = {BLUE, BROWN, RED, GREEN, PURPLE};
-    player = LoadTexture("textures/player.png");
+
+    player_t player;
+    
+    player.texture= LoadTexture("textures/player.png");
+    
     SetTargetFPS(FPS);
-    UnloadTexture(player);
-    int playerpos_y = 100;
-    int playerpos_x = 100;
+    
+    Rectangle **rect;
+    
+    UnloadTexture(player.texture);
 
+    rect = (Rectangle **)malloc(sizeof(Rectangle*)*gridheight);
 
+    for (int x = 0; x<gridheight; x++) {
+        rect[x]  = (Rectangle*)malloc(sizeof(Rectangle)*gridwidth);
+    }
+    for (int y = 0; y<gridheight; y++) {
+        for (int x = 0; x<gridwidth; x++) {
+            Rectangle temp = {(float)x * blocksize, (float)y * blocksize + 100, (float)blocksize, (float)blocksize};
+            rect[y][x] = temp;
+        }
+    }
+    
+    if (rect == NULL) {
+    printf("Error: rect is not allocated\n");
+    return 1;
+    }
+    
+    player.position.x = 100;
+    player.position.y = 100;
     while (!WindowShouldClose()) {
+
+        Vector2 oldPosition = player.position;
+        Vector2 newPosition = player.position;
         //For movement
         float dt = GetFrameTime();
         if (IsKeyPressed(KEY_S)) {
-            playerpos_y = playerpos_y+100;
+             newPosition.y += 100;
+            if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
+                player.position = newPosition;
+            }
         }
         if (IsKeyPressed(KEY_A)) {
-            playerpos_x = playerpos_x -100;
+            newPosition.x -= 100;
+            if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
+                player.position = newPosition;
+            }
         }
         if (IsKeyPressed(KEY_D)) {
-        playerpos_x = playerpos_x+100;
+            newPosition.x += 100;
+            if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
+                player.position = newPosition;
+            }
         }
         if (IsKeyPressed(KEY_W)) {
-        playerpos_y = playerpos_y-100;
+             newPosition.y -= 100;
+            if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
+                player.position = newPosition;
+            }
         }
-        if (playerpos_y<0) {
-        playerpos_y = 0;
-        playerpos_x = playerpos_x;
+        if (player.position.y<0) {
+        player.position.y = 0;
+        player.position.x = player.position.x;
         }
-        if (playerpos_y+player.height>window_height) {
-            playerpos_y = window_height - player.height;
+        if (player.position.y+player.texture.height>window_height) {
+            player.position.y = window_height-player.texture.height;
         }
-        if (playerpos_x<0) {
-        playerpos_x = 0;
-            playerpos_y = playerpos_y;
+        if (player.position.x<0) {
+        player.position.x = 0;
+            player.position.y = player.position.y;
         }
-        if (playerpos_x + player.width > window_width) {
-        playerpos_x = window_width - player.width;
+        if (player.position.x + player.texture.width > window_width) {
+        player.position.x = window_width - player.texture.width;
         }
-
-        //Camera
         //updating drawing
         BeginDrawing();
         ClearBackground(RAYWHITE);
         for (int y = 0; y<gridheight; y++) {
         for (int x = 0; x<gridwidth; x++) {
                 if (map[y][x] > 0) {
-                DrawRectangle(x * blocksize, y*blocksize+100, blocksize,blocksize, palette[map[y][x] - 1]);
+                    DrawRectangleRec(rect[y][x], palette[map[y][x]-1]);
+                    if (CheckCollisionPointRec(player.position, rect[y][x])  ) {
+                    }
                 }
                 DrawRectangleLines(x* blocksize, y* blocksize+100, blocksize, blocksize, GRAY);
             }
         }
-        DrawTexture(player, playerpos_x, playerpos_y, BLACK);
-        
+        DrawTexture(player.texture, player.position.x, player.position.y, BLACK);
         EndDrawing();
     }
     freemapmem(gridwidth, gridheight);
+    freerectmem(rect, gridheight);
     CloseWindow();
     return 0;
 }

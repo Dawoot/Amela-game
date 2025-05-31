@@ -69,7 +69,7 @@ int main()
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mousepos, paletterect)) {
                 selected_color = i;
         }
-        }
+    }
         if (mousepos.y>100) {
             int gridx = ((int)mousepos.x)/blocksize;
             int gridy = ((int)mousepos.y-100)/blocksize;
