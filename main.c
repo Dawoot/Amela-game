@@ -2,16 +2,15 @@
 #include <stdlib.h>
 #include "raylib.h"
 #define _GNU_SOURCE
-
 #define FPS 144
 #define window_width 1920
 #define window_height 1080
 #define TILE_EMPTY 0
-#define TILE_WALL 1      // Collision
-#define TILE_FLOOR 2     // No collision
-#define TILE_OBSTACLE 3  // Collision
-#define TILE_WATER 4     // No collision
-#define TILE_LAVA 5   
+#define TILE_WATER 1      // Collision
+#define TILE_FLOOR 4     // No collision
+#define TILE_OBSTACLE 5  // Collision
+#define TILE_WALL 2     // No collision
+#define TILE_LAVA 3   
 
 
 int **map;
@@ -60,8 +59,9 @@ void freemapmem(int gridwidth, int gridheight){
 }
 typedef struct player{
     Vector2 position;
-    Texture2D texture;
+    Texture2D texture; 
 }player_t;
+
 void freerectmem(Rectangle **rect, int gridheight) {
     for (int y = 0; y < gridheight; y++) {
         free(rect[y]);
@@ -73,15 +73,14 @@ bool isSolidTile(int tileType) {
         case TILE_WALL:
         case TILE_OBSTACLE:
         case TILE_LAVA:
+        case TILE_WATER:
             return true;
         default:
             return false;
     }
 }
-
-// Check collision between player and map tiles
 bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle **rect, int gridwidth, int gridheight, int blocksize) {
-    // Create player rectangle at new position
+    
     Rectangle playerRect = {
         newPosition.x,
         newPosition.y,
@@ -89,30 +88,26 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
         (float)playerTexture.height
     };
     
-    // Calculate which tiles the player might overlap with
     int startX = (int)(newPosition.x / blocksize);
     int endX = (int)((newPosition.x + playerTexture.width) / blocksize);
-    int startY = (int)((newPosition.y - 100) / blocksize); // -100 because tiles start at y=100
+    int startY = (int)((newPosition.y - 100) / blocksize); 
     int endY = (int)((newPosition.y + playerTexture.height - 100) / blocksize);
     
-    // Clamp to grid bounds
     startX = (startX < 0) ? 0 : startX;
     endX = (endX >= gridwidth) ? gridwidth - 1 : endX;
     startY = (startY < 0) ? 0 : startY;
     endY = (endY >= gridheight) ? gridheight - 1 : endY;
     
-    // Check collision with each potentially overlapping tile
     for (int y = startY; y <= endY; y++) {
         for (int x = startX; x <= endX; x++) {
             if (isSolidTile(map[y][x])) {
                 if (CheckCollisionRecs(playerRect, rect[y][x])) {
-                    return true; // Collision detected
+                    return true; 
                 }
             }
         }
-    }
-    
-    return false; // No collision
+    } 
+    return false; 
 }
 int main(){
     int blocksize = 100;
@@ -128,13 +123,13 @@ int main(){
     Color palette[] = {BLUE, BROWN, RED, GREEN, PURPLE};
 
     player_t player;
-    
+    player_t enemy;
     player.texture= LoadTexture("textures/player.png");
-    
+    enemy.texture = LoadTexture("textures/enemy.png");
     SetTargetFPS(FPS);
     
     Rectangle **rect;
-    
+    UnloadTexture(enemy.texture);
     UnloadTexture(player.texture);
 
     rect = (Rectangle **)malloc(sizeof(Rectangle*)*gridheight);
@@ -148,7 +143,7 @@ int main(){
             rect[y][x] = temp;
         }
     }
-    
+
     if (rect == NULL) {
     printf("Error: rect is not allocated\n");
     return 1;
@@ -156,12 +151,21 @@ int main(){
     
     player.position.x = 100;
     player.position.y = 100;
+
+    enemy.position.x = 500;
+    enemy.position.y = 500;
+    
+
+    int enemyspeed_x = 1;
+
+
     while (!WindowShouldClose()) {
 
         Vector2 oldPosition = player.position;
         Vector2 newPosition = player.position;
         //For movement
         float dt = GetFrameTime();
+        enemy.position.x  = enemy.position.x+enemyspeed_x;
         if (IsKeyPressed(KEY_S)) {
              newPosition.y += 100;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
@@ -200,6 +204,18 @@ int main(){
         if (player.position.x + player.texture.width > window_width) {
         player.position.x = window_width - player.texture.width;
         }
+        if (enemy.position.x + enemy.texture.width > window_width) {
+            enemyspeed_x = -1;
+        }
+        if (enemy.position.x<=0) {
+        enemyspeed_x = 1;
+        }
+        Rectangle p =  {player.position.x, player.position.y, player.texture.width, player.texture.height};
+        Rectangle e = {enemy.position.x, enemy.position.y, enemy.texture.width, enemy.texture.height};
+        if (CheckCollisionRecs(p, e)) {
+            player.position.x = 100;
+            player.position.y = 100;
+        }
         //updating drawing
         BeginDrawing();
         ClearBackground(RAYWHITE);
@@ -214,6 +230,7 @@ int main(){
             }
         }
         DrawTexture(player.texture, player.position.x, player.position.y, BLACK);
+        DrawTexture(enemy.texture,enemy.position.x,enemy.position.y, RED);
         EndDrawing();
     }
     freemapmem(gridwidth, gridheight);
