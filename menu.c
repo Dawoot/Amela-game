@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include <stdbool.h>
-
+#include <raymath.h>
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
@@ -53,8 +53,6 @@ void freemapmem(int gridwidth, int gridheight){
 int main()
 {
     InitWindow(window_width, window_height, "Map-maker");
-    SetTargetFPS(FPS);
-
     int blocksize = 100;
     int gridwidth = window_width/blocksize;
     int gridheight = window_height/blocksize;
@@ -64,16 +62,46 @@ int main()
     Color palette[] = {BLUE, BROWN, RED, GREEN, PURPLE};
     int selected_color;
     bool menu = false;
+    Camera2D camera = {0};
+    camera.zoom = 1.0f;
+    int zoom = 0;
+    SetTargetFPS(FPS);
+
+    // sets the blocksize and adjusts size of grid for map
     while (!WindowShouldClose())
     {
+        if (IsKeyPressed(KEY_ONE)) zoom = 0;
+        else if (IsKeyPressed(KEY_TWO)) zoom = 1;
         Vector2 mousepos = GetMousePosition();
-            BeginDrawing();
+        if (zoom ==0 && menu == false) {
+            float wheel = GetMouseWheelMove();
+            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        {
+            Vector2 delta = GetMouseDelta();
+            delta = Vector2Scale(delta, -1.0f/camera.zoom);
+            camera.target = Vector2Add(camera.target, delta);
+        }
+            if (wheel != 0)
+            {
+                
+                Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
+
+                camera.offset = GetMousePosition();
+
+                camera.target = mouseWorldPos;
+
+                float scale = 0.2f*wheel;
+                camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f, 64.0f);
+            }
+        }
+        
         if (IsKeyPressed(KEY_B)) {
             menu = true;
         }
         if (IsKeyPressed(KEY_C)) {
             menu = false;
-        }
+    }
+            BeginDrawing();
         if (menu) {
             ClearBackground(WHITE);
             if (GuiButton((Rectangle){ 24, 260, 200, 30 }, "RED")) selected_color = 2;
@@ -84,11 +112,12 @@ int main()
         }
         else {
 
+        BeginMode2D(camera);
         ClearBackground( color);
             int gridx = ((int)mousepos.x)/blocksize;
             int gridy = ((int)mousepos.y)/blocksize;
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && gridx >=0 && gridx <gridwidth && gridy >= 0 && gridy <gridheight ||
-            IsMouseButtonDown(MOUSE_BUTTON_LEFT) && gridx >=0 && gridx <gridwidth && gridy >= 0 && gridy <gridheight) {
+            IsMouseButtonDown(MOUSE_BUTTON_LEFT) && gridx >=0 && gridx <gridwidth && gridy >= 0 && gridy <gridheight && zoom != 0) {
                 map[gridy][gridx] = selected_color + 1; 
             }
             if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT && gridx >=0 && gridx <gridwidth && gridy >= 0 && gridy <gridheight)) {
@@ -99,10 +128,11 @@ int main()
                 if (map[y][x] > 0) { 
                 DrawRectangle(x * blocksize, y*blocksize, blocksize,blocksize, palette[map[y][x] - 1]);
                 }
-                DrawRectangleLines(x* blocksize, y* blocksize, blocksize, blocksize, GRAY);
+                DrawRectangleLines(x* blocksize, y*blocksize, blocksize, blocksize, GRAY);
             }
         }
         }
+        EndMode2D();
         EndDrawing();
     }
     save("map.bin", gridwidth, gridheight);
