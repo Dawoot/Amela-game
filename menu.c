@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include <stdbool.h>
 #include <raymath.h>
+#include <stdio.h>
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
@@ -65,14 +66,17 @@ int main()
     Camera2D camera = {0};
     camera.zoom = 1.0f;
     int zoom = 0;
+    Vector2 mousepos = GetMousePosition();
+    int gridx = ((int)mousepos.x)/blocksize;
+    int gridy = ((int)mousepos.y)/blocksize;
     SetTargetFPS(FPS);
 
-    // sets the blocksize and adjusts size of grid for map
+    
     while (!WindowShouldClose())
     {
         if (IsKeyPressed(KEY_ONE)) zoom = 0;
         else if (IsKeyPressed(KEY_TWO)) zoom = 1;
-        Vector2 mousepos = GetMousePosition();
+        mousepos = GetMousePosition();
         if (zoom ==0 && menu == false) {
             float wheel = GetMouseWheelMove();
             if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
@@ -114,14 +118,17 @@ int main()
 
         BeginMode2D(camera);
         ClearBackground( color);
-            int gridx = ((int)mousepos.x)/blocksize;
-            int gridy = ((int)mousepos.y)/blocksize;
+            gridx = ((int)mousepos.x)/blocksize;
+            gridy = ((int)mousepos.y)/blocksize;
+            if (zoom < 0) {
+            
             if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && gridx >=0 && gridx <gridwidth && gridy >= 0 && gridy <gridheight ||
             IsMouseButtonDown(MOUSE_BUTTON_LEFT) && gridx >=0 && gridx <gridwidth && gridy >= 0 && gridy <gridheight && zoom != 0) {
                 map[gridy][gridx] = selected_color + 1; 
             }
             if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT && gridx >=0 && gridx <gridwidth && gridy >= 0 && gridy <gridheight)) {
                 map[gridy][gridx] =  0; 
+            }
             }
         for (int y = 0; y<gridheight; y++) {
         for (int x = 0; x<gridwidth; x++) {
