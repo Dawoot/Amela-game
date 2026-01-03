@@ -1,6 +1,8 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "raylib.h"
+#include "both.h"
 #define _GNU_SOURCE
 #define FPS 144
 #define window_width 1920
@@ -13,50 +15,8 @@
 #define TILE_LAVA 3   
 
 
-int **map;
 
-void initializetiledmap(int gridwidth, int gridheight){
-    map = (int **)malloc(gridheight*sizeof(int*));
-    if (map == NULL) {
-        printf("Bro something went wrong when initalizing memory for map\n");
-    }
-    for (int i = 0; i<gridheight ; i++) {
-        map[i] = (int*)malloc(gridwidth*sizeof(int*));
-        if (map[i] == NULL) {
-        printf("Something went wrong initalizing the memory of y map\n");
-        }
-    for (int x =0 ; x<gridwidth; x++) {
-
-    map[i][x] = 0;
-        }
-    }
-}
         
-void loadmap(char *filename, int gridwidth, int gridheight){
-    FILE *file;
-    file = fopen(filename, "rb");
-    if (file == NULL) {
-    printf("Error loadingmap\n");
-        return;
-    }
-    int localwidth, localheight;
-    fread(&localwidth, sizeof(int), 1, file);
-    fread(&localheight, sizeof(int), 1, file);
-    if (localheight != gridheight || localwidth != gridwidth) {
-        printf("\nSomething went wrong here!\n");
-    }
-    for (int i = 0; i<gridheight; i++) {
-    fread(map[i], sizeof(int), gridwidth, file);    
-    }
-    fclose(file);
-}
-        
-void freemapmem(int gridwidth, int gridheight){
-    for (int y = 0; y<gridheight; y++) {
-    free(map[y]);
-    }
-    free(map);
-}
 typedef struct player{
     Vector2 position;
     Texture2D texture; 
@@ -90,8 +50,8 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
     
     int startX = (int)(newPosition.x / blocksize);
     int endX = (int)((newPosition.x + playerTexture.width) / blocksize);
-    int startY = (int)((newPosition.y - 100) / blocksize); 
-    int endY = (int)((newPosition.y + playerTexture.height - 100) / blocksize);
+    int startY = (int)((newPosition.y - 25) / blocksize); 
+    int endY = (int)((newPosition.y + playerTexture.height - 25) / blocksize);
     
     startX = (startX < 0) ? 0 : startX;
     endX = (endX >= gridwidth) ? gridwidth - 1 : endX;
@@ -110,27 +70,26 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
     return false; 
 }
 int main(){
-    int blocksize = 100;
+    int blocksize = 25;
     int gridwidth = window_width/blocksize;
-    int gridheight = (window_height-100)/blocksize;
+    int gridheight = (window_height-25)/blocksize;
+    uint8_t level_counter = 0;
 
     initializetiledmap(gridwidth, gridheight);
     
     InitWindow(window_width, window_height, "Love to amela");
     
-    loadmap("map.bin", gridwidth, gridheight);
+    loadmap("../maps/map.bin", gridwidth, gridheight);
 
     Color palette[] = {BLUE, BROWN, RED, GREEN, PURPLE};
 
     player_t player;
     player_t enemy;
-    player.texture= LoadTexture("textures/player.png");
-    enemy.texture = LoadTexture("textures/enemy.png");
+    player.texture= LoadTexture("../textures/Amela.png");
+    enemy.texture = LoadTexture("../textures/Enemy.png");
     SetTargetFPS(FPS);
     
     Rectangle **rect;
-    UnloadTexture(enemy.texture);
-    UnloadTexture(player.texture);
 
     rect = (Rectangle **)malloc(sizeof(Rectangle*)*gridheight);
 
@@ -139,7 +98,7 @@ int main(){
     }
     for (int y = 0; y<gridheight; y++) {
         for (int x = 0; x<gridwidth; x++) {
-            Rectangle temp = {(float)x * blocksize, (float)y * blocksize + 100, (float)blocksize, (float)blocksize};
+            Rectangle temp = {(float)x * blocksize, (float)y * blocksize, (float)blocksize, (float)blocksize};
             rect[y][x] = temp;
         }
     }
@@ -149,16 +108,16 @@ int main(){
     return 1;
     }
     
-    player.position.x = 100;
-    player.position.y = 100;
+    player.position.x = 25;
+    player.position.y = 25;
 
     enemy.position.x = 500;
     enemy.position.y = 500;
     
 
     int enemyspeed_x = 1;
-
-
+    float amela_speed_x = 0;
+    float amela_speed_y = 0;
     while (!WindowShouldClose()) {
 
         Vector2 oldPosition = player.position;
@@ -167,28 +126,34 @@ int main(){
         float dt = GetFrameTime();
         enemy.position.x  = enemy.position.x+enemyspeed_x;
         if (IsKeyPressed(KEY_S)) {
-             newPosition.y += 100;
+            amela_speed_y = 10;
+             newPosition.y = newPosition.y + amela_speed_y;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
         }
         if (IsKeyPressed(KEY_A)) {
-            newPosition.x -= 100;
+            amela_speed_x = -10;
+            newPosition.x = newPosition.x + amela_speed_x;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
         }
         if (IsKeyPressed(KEY_D)) {
-            newPosition.x += 100;
+            amela_speed_x = 10;
+            newPosition.x = newPosition.x + amela_speed_x;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
         }
         if (IsKeyPressed(KEY_W)) {
-             newPosition.y -= 100;
+            amela_speed_y =-10;
+             newPosition.y = newPosition.y +amela_speed_y;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
+        }else{
+
         }
         if (player.position.y<0) {
         player.position.y = 0;
@@ -213,8 +178,8 @@ int main(){
         Rectangle p =  {player.position.x, player.position.y, player.texture.width, player.texture.height};
         Rectangle e = {enemy.position.x, enemy.position.y, enemy.texture.width, enemy.texture.height};
         if (CheckCollisionRecs(p, e)) {
-            player.position.x = 100;
-            player.position.y = 100;
+            player.position.x = 25;
+            player.position.y = 25;
         }
         //updating drawing
         BeginDrawing();
@@ -226,7 +191,7 @@ int main(){
                     if (CheckCollisionPointRec(player.position, rect[y][x])  ) {
                     }
                 }
-                DrawRectangleLines(x* blocksize, y* blocksize+100, blocksize, blocksize, GRAY);
+                DrawRectangleLines(x* blocksize, y* blocksize, blocksize, blocksize, GRAY);
             }
         }
         DrawTexture(player.texture, player.position.x, player.position.y, BLACK);
@@ -235,6 +200,8 @@ int main(){
     }
     freemapmem(gridwidth, gridheight);
     freerectmem(rect, gridheight);
+    UnloadTexture(enemy.texture);
+    UnloadTexture(player.texture);
     CloseWindow();
     return 0;
 }
