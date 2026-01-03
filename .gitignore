@@ -6,3 +6,4 @@ raygui.h
 raymath.h
 menu
 build
+compile_commands.json
