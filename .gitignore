@@ -1,2 +1,8 @@
 main
 map
+styles/*
+styles
+raygui.h
+raymath.h
+menu
+build
