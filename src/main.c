@@ -85,65 +85,73 @@ int main(){
     enemy.position.y = 500;
     
 
-    int enemyspeed_x = 1;
-    float amela_speed_x = 0;
-    float amela_speed_y = 0;
+    enemy.player_sx = 1;
     
+    player.player_sx = 0;
+    player.player_sy = 0;
+    player.player_hp = 5;
     while (!WindowShouldClose()) {
         
         //Movement logic
         Vector2 oldPosition = player.position;
         Vector2 newPosition = player.position;
         float dt = GetFrameTime();
-        enemy.position.x  = enemy.position.x+enemyspeed_x;
+        enemy.position.x  = enemy.position.x+enemy.player_sx;
         if (IsKeyPressed(KEY_S) || IsKeyDown(KEY_S)) {
-            amela_speed_y = 0;
-            amela_speed_y = amela_speed_y+50*dt;
-            if (amela_speed_y >= 50)amela_speed_y = 50;
-             newPosition.y = newPosition.y + amela_speed_y;
+            player.player_sy = 0;
+            player.player_sy = player.player_sy+50*dt;
+            if (player.player_sy >= 50)player.player_sy = 50;
+             newPosition.y = newPosition.y + player.player_sy;
             player.player_r = 90;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
         }
         if (IsKeyPressed(KEY_A) || IsKeyDown(KEY_A)) {
-            amela_speed_x = 0;
-            amela_speed_x = amela_speed_x-100*dt;
-            if (amela_speed_x <= -50) amela_speed_x = -50; 
-            newPosition.x = newPosition.x + amela_speed_x;
+            player.player_sx = 0;
+            player.player_sx = player.player_sx-100*dt;
+            if (player.player_sx <= -50) player.player_sx = -50; 
+            newPosition.x = newPosition.x + player.player_sx;
             player.player_r = 180;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
         }
         if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D)) {
-            amela_speed_x = 0;
-            amela_speed_x = amela_speed_x+100*dt;
-            if (amela_speed_x >= 50) amela_speed_x = 50;
-            newPosition.x = newPosition.x + amela_speed_x;
+            player.player_sx = 0;
+            player.player_sx = player.player_sx+100*dt;
+            if (player.player_sx >= 50) player.player_sx = 50;
+            newPosition.x = newPosition.x + player.player_sx;
             player.player_r = 0;
                 if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
         }
         if (IsKeyPressed(KEY_W) || IsKeyDown(KEY_W)) {
-            amela_speed_y = 0;
-            amela_speed_y =amela_speed_y-100*dt;
-            if (amela_speed_y<=-50) amela_speed_y = -50;
-             newPosition.y = newPosition.y +amela_speed_y;
+            player.player_sy = 0;
+            player.player_sy =player.player_sy-100*dt;
+            if (player.player_sy<=-50) player.player_sy = -50;
+             newPosition.y = newPosition.y +player.player_sy;
             player.player_r = 270;
             if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
                 player.position = newPosition;
             }
         }
-        
+       check_map_boundry(&player, &enemy); 
         Rectangle p =  {player.position.x, player.position.y, player.texture.width, player.texture.height};
         Rectangle e = {enemy.position.x, enemy.position.y, enemy.texture.width, enemy.texture.height};
         if (CheckCollisionRecs(p, e)) {
+            player.player_hp = player.player_hp-1;
+            if (player.player_sx == 0 && player.player_sy == 0) {
+
+            }
+            player.player_sx = -player.player_sx;
+            player.player_sy = -player.player_sy;
+        }
+        if (player.player_hp <= 0) {
             player.position.x = 25;
             player.position.y = 25;
         }
-
         //Rendering logic
         BeginDrawing();
         ClearBackground(RAYWHITE);

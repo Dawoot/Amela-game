@@ -16,7 +16,10 @@ typedef struct player{
     Rectangle player_s;
     Rectangle player_d;
     Vector2 player_o;
+    float player_sx;
+    float player_sy;
     int player_r;
+    int8_t player_hp;
 }player_t;
 
 

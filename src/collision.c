@@ -46,7 +46,7 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
     return false; 
 }
 
-void check_map_boundry(player_t *player, player_t *enemy, int enemyspeed_x){
+void check_map_boundry(player_t *player, player_t *enemy){
     
         if (player->position.y<0) {
         player->position.y = 0;
@@ -62,10 +62,7 @@ void check_map_boundry(player_t *player, player_t *enemy, int enemyspeed_x){
         if (player->position.x + player->texture.width > window_width) {
         player->position.x = window_width - player->texture.width;
         }
-        if (enemy->position.x + enemy->texture.width > window_width) {
-            enemyspeed_x = -1;
-        }
-        if (enemy->position.x<=0) {
-        enemyspeed_x = 1;
+        if (enemy->position.x >=window_width) {
+        enemy->player_sx = -enemy->player_sx;
         }
 }
