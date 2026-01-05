@@ -8,6 +8,8 @@
 #define FPS 144
 #define window_height 1080
 #define window_width 1920
+#define MAX_HP 5
+
 
 extern int **map;
 typedef struct player{

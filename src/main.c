@@ -1,6 +1,8 @@
 #include "top_lev.h"
 #include "both.h"
 #include "collision.h"
+#include <raylib.h>
+#include <stdio.h>
 
 #define _GNU_SOURCE
 
@@ -15,7 +17,7 @@ int main(){
     
     int blocksize = 25;
     int gridwidth = window_width/blocksize;
-    int gridheight = (window_height-25)/blocksize;
+    int gridheight = (window_height)/blocksize;
     uint8_t level_counter = 0;
 
 
@@ -32,7 +34,6 @@ int main(){
     Image m_wood = LoadImage("../textures/magic_wood.png");
     Image ocean = LoadImage("../textures/ocean.png");
     Image mountain = LoadImage("../textures/mountain.png");
-    
 
     player_t player;
     player_t enemy;
@@ -55,7 +56,9 @@ int main(){
     Texture m_wood_t = LoadTextureFromImage(m_wood);
     Texture ocean_t = LoadTextureFromImage(ocean);
     Texture mountain_t = LoadTextureFromImage(mountain);
-    
+    Texture heart_f = LoadTexture("../textures/heart.png");
+    Texture heart_e = LoadTexture("../textures/empty_heart.png");
+
     Rectangle **rect;
     Texture list[] = {dirt_t, lava_t, m_wood_t, ocean_t, mountain_t};
     Rectangle source = {0.0f, 0.0f, 25.0, 25.0};
@@ -90,6 +93,7 @@ int main(){
     player.player_sx = 0;
     player.player_sy = 0;
     player.player_hp = 5;
+    printf("Sizeof struct: %lu", sizeof(player_t));
     while (!WindowShouldClose()) {
         
         //Movement logic
@@ -151,6 +155,7 @@ int main(){
         if (player.player_hp <= 0) {
             player.position.x = 25;
             player.position.y = 25;
+            player.player_hp = 5;
         }
         //Rendering logic
         BeginDrawing();
@@ -167,6 +172,12 @@ int main(){
                     }
                 }
             }
+        }
+        for (int i = 0; i<player.player_hp; i++) {
+            DrawTexture(heart_f, 0+(heart_f.width*i), 0, WHITE);
+        }
+        for (int i=MAX_HP; i>player.player_hp; i--) {
+            DrawTexture(heart_e, 0+(heart_e.width*(i-1)), 0, WHITE);
         }
         player.player_d = (Rectangle){player.position.x, player.position.y, player.texture.width, player.texture.height};
         DrawTexturePro(player.texture, player.player_s, player.player_d,player.player_o,player.player_r, WHITE);
