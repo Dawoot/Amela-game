@@ -5,6 +5,8 @@
 #include <stdio.h>
 
 #define _GNU_SOURCE
+#define MOVEMENT_SPEED 100;
+
 
 void freerectmem(Rectangle **rect, int gridheight) {
     for (int y = 0; y < gridheight; y++) {
@@ -81,83 +83,71 @@ int main(){
     return 1;
     }
     
-    player.position.x = 25;
-    player.position.y = 25;
+    player.position.x = 0;
+    player.position.y = 0;
 
     enemy.position.x = 500;
     enemy.position.y = 500;
     
 
-    enemy.player_sx = 1;
+    enemy.speed.x = 1;
     
-    player.player_sx = 0;
-    player.player_sy = 0;
+    player.speed.x = 0;
+    player.speed.y = 0;
     player.player_hp = 5;
     printf("Sizeof struct: %lu", sizeof(player_t));
+    Vector2 oldPosition = player.position;
+    Vector2 newPosition = player.position;
     while (!WindowShouldClose()) {
-        
+        oldPosition = player.position;
         //Movement logic
-        Vector2 oldPosition = player.position;
-        Vector2 newPosition = player.position;
         float dt = GetFrameTime();
-        enemy.position.x  = enemy.position.x+enemy.player_sx;
+        enemy.position.x  = enemy.position.x+enemy.speed.x;
         if (IsKeyPressed(KEY_S) || IsKeyDown(KEY_S)) {
-            player.player_sy = 0;
-            player.player_sy = player.player_sy+50*dt;
-            if (player.player_sy >= 50)player.player_sy = 50;
-             newPosition.y = newPosition.y + player.player_sy;
+            player.speed.y = 0;
+            player.speed.y = player.speed.y+100;
+            if (player.speed.y >= 100)player.speed.y = 100;
             player.player_r = 90;
-            if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
-                player.position = newPosition;
-            }
         }
         if (IsKeyPressed(KEY_A) || IsKeyDown(KEY_A)) {
-            player.player_sx = 0;
-            player.player_sx = player.player_sx-100*dt;
-            if (player.player_sx <= -50) player.player_sx = -50; 
-            newPosition.x = newPosition.x + player.player_sx;
+            player.speed.x = 0;
+            player.speed.x = player.speed.x-100;
+            if (player.speed.x <= -100) player.speed.x = -100; 
             player.player_r = 180;
-            if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
-                player.position = newPosition;
-            }
         }
         if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D)) {
-            player.player_sx = 0;
-            player.player_sx = player.player_sx+100*dt;
-            if (player.player_sx >= 50) player.player_sx = 50;
-            newPosition.x = newPosition.x + player.player_sx;
+            player.speed.x = 0;
+            player.speed.x = player.speed.x+100;
+            if (player.speed.x >= 100) player.speed.x = 100;
             player.player_r = 0;
-                if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
-                player.position = newPosition;
-            }
         }
         if (IsKeyPressed(KEY_W) || IsKeyDown(KEY_W)) {
-            player.player_sy = 0;
-            player.player_sy =player.player_sy-100*dt;
-            if (player.player_sy<=-50) player.player_sy = -50;
-             newPosition.y = newPosition.y +player.player_sy;
+            player.speed.y = 0;
+            player.speed.y =player.speed.y-100;
+            if (player.speed.y<=-100) player.speed.y=-100;
             player.player_r = 270;
-            if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
-                player.position = newPosition;
-            }
         }
-       check_map_boundry(&player, &enemy); 
-        Rectangle p =  {player.position.x, player.position.y, player.texture.width, player.texture.height};
-        Rectangle e = {enemy.position.x, enemy.position.y, enemy.texture.width, enemy.texture.height};
-        if (CheckCollisionRecs(p, e)) {
-            player.player_hp = player.player_hp-1;
-            if (player.player_sx == 0 && player.player_sy == 0) {
-
-            }
-            player.player_sx = -player.player_sx;
-            player.player_sy = -player.player_sy;
+        check_enemy_collision(&player, &enemy);
+        Vector2 final = {player.knockback.x + player.speed.x, player.speed.y + player.knockback.y};
+        player.knockback.x = player.knockback.x * 0.8f;
+        player.knockback.y = player.knockback.y * 0.8f;
+        newPosition.x = newPosition.x + final.x*dt;
+        newPosition.y = newPosition.y + final.y*dt;
+        if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
+            player.position = newPosition;
+        }else {
+        player.position = player.position;
         }
         if (player.player_hp <= 0) {
             player.position.x = 25;
             player.position.y = 25;
             player.player_hp = 5;
         }
+        //check_enemy_collision(&player,&enemy,dt);
+        check_map_boundry(&player, &enemy); 
         //Rendering logic
+        player.speed.x = 0;
+        player.speed.y = 0;
         BeginDrawing();
         ClearBackground(RAYWHITE);
         for (int y = 0; y<gridheight; y++) {
@@ -181,7 +171,7 @@ int main(){
         }
         player.player_d = (Rectangle){player.position.x, player.position.y, player.texture.width, player.texture.height};
         DrawTexturePro(player.texture, player.player_s, player.player_d,player.player_o,player.player_r, WHITE);
-        DrawTexture(enemy.texture,enemy.position.x,enemy.position.y, WHITE);
+        DrawTexture(enemy.texture,enemy.position.x,enemy.position.y, WHITE); 
         EndDrawing();
     }
     freemapmem(gridwidth, gridheight);

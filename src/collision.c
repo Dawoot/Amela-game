@@ -2,7 +2,6 @@
 #include "top_lev.h"
 #include <raylib.h>
 
-
 bool isSolidTile(int tileType) {
     switch(tileType) {
         case TILE_WALL:
@@ -26,8 +25,8 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
     
     int startX = (int)(newPosition.x / blocksize);
     int endX = (int)((newPosition.x + playerTexture.width) / blocksize);
-    int startY = (int)((newPosition.y - 25) / blocksize); 
-    int endY = (int)((newPosition.y + playerTexture.height - 25) / blocksize);
+    int startY = (int)((newPosition.y-13) / blocksize); 
+    int endY = (int)((newPosition.y + playerTexture.height) / blocksize);
     
     startX = (startX < 0) ? 0 : startX;
     endX = (endX >= gridwidth) ? gridwidth - 1 : endX;
@@ -63,6 +62,26 @@ void check_map_boundry(player_t *player, player_t *enemy){
         player->position.x = window_width - player->texture.width;
         }
         if (enemy->position.x >=window_width) {
-        enemy->player_sx = -enemy->player_sx;
+        enemy->speed.x = -enemy->speed.x;
         }
+        if (enemy->position.x<=0) {
+        enemy->speed.x = -enemy->speed.x;
+        }
+}
+void check_enemy_collision(player_t *player, player_t *enemy ){
+    
+    Rectangle p =  {player->position.x-12.5, player->position.y-12.5, (float)player->texture.width,(float) player->texture.height};
+    Rectangle e = {enemy->position.x, enemy->position.y, (float)enemy->texture.width, (float)enemy->texture.height};
+
+    if (!CheckCollisionRecs(p, e)) return;
+    float strength = 500;
+    Vector2 p_c = {(float)(p.x + p.width *0.5), (float)(p.y + p.height*0.5)};
+    Vector2 e_c = {(float)(e.x + e.width *0.5), (float)(e.y + e.height*0.5)};
+        
+    Vector2 direction = Vector2Subtract(p_c, e_c);
+    if (Vector2Length(direction) < 0.001f) direction = (Vector2){ 0.0f, -1.0f };
+        
+    direction = Vector2Normalize(direction);
+    player->knockback.x += strength*direction.x;
+    player->knockback.y += strength*direction.y;
 }
