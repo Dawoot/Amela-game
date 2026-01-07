@@ -99,50 +99,22 @@ int main(){
     Vector2 oldPosition = player.position;
     Vector2 newPosition = player.position;
     while (!WindowShouldClose()) {
-        oldPosition = player.position;
-        //Movement logic
-        float dt = GetFrameTime();
-        enemy.position.x  = enemy.position.x+enemy.speed.x;
-        if (IsKeyPressed(KEY_S) || IsKeyDown(KEY_S)) {
-            player.speed.y = 0;
-            player.speed.y = player.speed.y+100;
-            if (player.speed.y >= 100)player.speed.y = 100;
-            player.player_r = 90;
-        }
-        if (IsKeyPressed(KEY_A) || IsKeyDown(KEY_A)) {
-            player.speed.x = 0;
-            player.speed.x = player.speed.x-100;
-            if (player.speed.x <= -100) player.speed.x = -100; 
-            player.player_r = 180;
-        }
-        if (IsKeyPressed(KEY_D) || IsKeyDown(KEY_D)) {
-            player.speed.x = 0;
-            player.speed.x = player.speed.x+100;
-            if (player.speed.x >= 100) player.speed.x = 100;
-            player.player_r = 0;
-        }
-        if (IsKeyPressed(KEY_W) || IsKeyDown(KEY_W)) {
-            player.speed.y = 0;
-            player.speed.y =player.speed.y-100;
-            if (player.speed.y<=-100) player.speed.y=-100;
-            player.player_r = 270;
-        }
-        check_enemy_collision(&player, &enemy);
-        Vector2 final = {player.knockback.x + player.speed.x, player.speed.y + player.knockback.y};
-        player.knockback.x = player.knockback.x * 0.8f;
-        player.knockback.y = player.knockback.y * 0.8f;
-        newPosition.x = newPosition.x + final.x*dt;
-        newPosition.y = newPosition.y + final.y*dt;
         if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
             player.position = newPosition;
-        }else {
-        player.position = player.position;
         }
         if (player.player_hp <= 0) {
             player.position.x = 25;
             player.position.y = 25;
             player.player_hp = 5;
         }
+        check_enemy_collision(&player, &enemy);
+        Vector2 final = {player.knockback.x + player.speed.x, player.speed.y + player.knockback.y};
+        player.knockback.x = player.knockback.x * 0.8f;
+        player.knockback.y = player.knockback.y * 0.8f;
+        float dt = GetFrameTime();
+        
+        newPosition.x = newPosition.x + final.x*dt;
+        newPosition.y = newPosition.y + final.y*dt;
         //check_enemy_collision(&player,&enemy,dt);
         check_map_boundry(&player, &enemy); 
         //Rendering logic
