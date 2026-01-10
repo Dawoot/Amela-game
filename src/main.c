@@ -3,10 +3,11 @@
 #include "collision.h"
 #include <raylib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define _GNU_SOURCE
 #define MOVEMENT_SPEED 100;
-
+#define blocksize 25
 
 void freerectmem(Rectangle **rect, int gridheight) {
     for (int y = 0; y < gridheight; y++) {
@@ -14,10 +15,22 @@ void freerectmem(Rectangle **rect, int gridheight) {
     }
     free(rect);
 }
+void init_rect(Rectangle **rect, int gridwidth, int gridheight){
+    
+    rect = (Rectangle **)malloc(sizeof(Rectangle*)*gridheight);
 
+    for (int x = 0; x<gridheight; x++) {
+        rect[x]  = (Rectangle*)malloc(sizeof(Rectangle)*gridwidth);
+    }
+    for (int y = 0; y<gridheight; y++) {
+        for (int x = 0; x<gridwidth; x++) {
+            Rectangle temp = {(float)x * blocksize, (float)y * blocksize, (float)blocksize, (float)blocksize};
+            rect[y][x] = temp;
+        }
+    }
+}
 int main(){
     
-    int blocksize = 25;
     int gridwidth = window_width/blocksize;
     int gridheight = (window_height)/blocksize;
     uint8_t level_counter = 0;
@@ -38,9 +51,8 @@ int main(){
     Image mountain = LoadImage("../textures/mountain.png");
 
     player_t player;
-    player_t enemy;
+    enemies_t *enemies; 
     player.texture= LoadTexture("../textures/Amela.png");
-    enemy.texture = LoadTexture("../textures/Enemy.png");
     player.player_s = (Rectangle){0.0f,0.0f, player.texture.width, player.texture.height};
     player.player_d = (Rectangle){0.0f, 0.0f, 0.0f, 0.0f};
     player.player_o = (Vector2){((float)(player.texture.width/2)), ((float)(player.texture.height/2))};
@@ -66,36 +78,48 @@ int main(){
     Rectangle source = {0.0f, 0.0f, 25.0, 25.0};
     Vector2 origin = {0.0f,0.0f};
 
-    rect = (Rectangle **)malloc(sizeof(Rectangle*)*gridheight);
-
-    for (int x = 0; x<gridheight; x++) {
-        rect[x]  = (Rectangle*)malloc(sizeof(Rectangle)*gridwidth);
-    }
-    for (int y = 0; y<gridheight; y++) {
-        for (int x = 0; x<gridwidth; x++) {
-            Rectangle temp = {(float)x * blocksize, (float)y * blocksize, (float)blocksize, (float)blocksize};
-            rect[y][x] = temp;
-        }
-    }
+    init_rect(rect, gridwidth, gridheight);
 
     if (rect == NULL) {
     printf("Error: rect is not allocated\n");
     return 1;
     }
-    
-    player.position.x = 0;
-    player.position.y = 0;
+    int enemy_count=0;
+    for (int y=0; y<gridheight; y++) {
+        for (int x =0; x<gridwidth; x++) {
+            if (map[y][x] == 6) {
+            player.position.x = x*blocksize; 
+            player.position.y = y*blocksize;
+            }
+            if (map[y][x]==5) {
+                enemy_count++;
+                //Every increment add one to i 
+                //When we do blocks of enemies!
+            }
+        }
+    }
+    enemies = (enemies_t *)malloc(sizeof(enemies_t)*enemy_count);
+    if (enemies == NULL) {
+        printf("Enemy failed to allocate\n");
+        exit(1);
+    }
+    enemy_count = 0;
+    for (int y=0; y<gridheight; y++) {
+        for (int x = 0; x<gridwidth; x++) {
+        if (map[y][x] == 5) {
+        enemies[enemy_count].position.x = x*blocksize;
+        enemies[enemy_count].position.y = y*blocksize;
+        enemies->speed.x = 1.2;
+        enemy_count++;
+        } 
+        }
+    }
 
-    enemy.position.x = 500;
-    enemy.position.y = 500;
-    
-
-    enemy.speed.x = 1;
     
     player.speed.x = 0;
     player.speed.y = 0;
-    player.player_hp = 5;
-    printf("Sizeof struct: %lu", sizeof(player_t));
+    player.player_hp = MAX_HP;
+    printf("Sizeof struct enemies: %lu, enemy count: %d", sizeof(enemies_t), enemy_count);
     Vector2 oldPosition = player.position;
     Vector2 newPosition = player.position;
     while (!WindowShouldClose()) {
@@ -105,22 +129,21 @@ int main(){
         if (player.player_hp <= 0) {
             player.position.x = 25;
             player.position.y = 25;
-            player.player_hp = 5;
+            player.player_hp = MAX_HP;
         }
-        check_enemy_collision(&player, &enemy);
+        check_enemy_collision(&player, enemies, enemy_count);
         Vector2 final = {player.knockback.x + player.speed.x, player.speed.y + player.knockback.y};
-        player.knockback.x = player.knockback.x * 0.8f;
-        player.knockback.y = player.knockback.y * 0.8f;
+        player.knockback.x = player.knockback.x * 0.9f;
+        player.knockback.y = player.knockback.y * 0.9f;
         float dt = GetFrameTime();
         
         newPosition.x = newPosition.x + final.x*dt;
         newPosition.y = newPosition.y + final.y*dt;
-        //check_enemy_collision(&player,&enemy,dt);
-        check_map_boundry(&player, &enemy); 
-        //Rendering logic
+        check_map_boundry(&player, enemies, enemy_count); 
         player.speed.x = 0;
         player.speed.y = 0;
         BeginDrawing();
+        //Rendering logic
         ClearBackground(RAYWHITE);
         for (int y = 0; y<gridheight; y++) {
         for (int x = 0; x<gridwidth; x++) {
@@ -143,13 +166,18 @@ int main(){
         }
         player.player_d = (Rectangle){player.position.x, player.position.y, player.texture.width, player.texture.height};
         DrawTexturePro(player.texture, player.player_s, player.player_d,player.player_o,player.player_r, WHITE);
-        DrawTexture(enemy.texture,enemy.position.x,enemy.position.y, WHITE); 
+        for (int i=0; i<=enemy_count; i++) {
+        DrawTexture(enemies[i].texture, enemies[i].position.x,enemies[i].position.y , WHITE);
+        }
         EndDrawing();
     }
     freemapmem(gridwidth, gridheight);
     freerectmem(rect, gridheight);
-    UnloadTexture(enemy.texture);
+    free(enemies);
     UnloadTexture(player.texture);
+    for (int i =0; i<=enemy_count; i++) {
+        UnloadTexture(enemies[i].texture); 
+    }
     CloseWindow();
     return 0;
 }

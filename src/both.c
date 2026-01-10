@@ -3,6 +3,8 @@
 #include <stdio.h>
 int **map = NULL;
 //initializes the memory for maping
+
+
 void loadmap(char *filename, int gridwidth, int gridheight){
     FILE *file;
     file = fopen(filename, "rb");

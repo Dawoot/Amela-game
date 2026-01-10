@@ -25,7 +25,7 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
     
     int startX = (int)(newPosition.x / blocksize);
     int endX = (int)((newPosition.x + playerTexture.width) / blocksize);
-    int startY = (int)((newPosition.y-13) / blocksize); 
+    int startY = (int)((newPosition.y-12.5) / blocksize); 
     int endY = (int)((newPosition.y + playerTexture.height) / blocksize);
     
     startX = (startX < 0) ? 0 : startX;
@@ -45,7 +45,7 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
     return false; 
 }
 
-void check_map_boundry(player_t *player, player_t *enemy){
+void check_map_boundry(player_t *player, enemies_t *enemy, int enemy_count){
     
         if (player->position.y<0) {
         player->position.y = 0;
@@ -61,17 +61,22 @@ void check_map_boundry(player_t *player, player_t *enemy){
         if (player->position.x + player->texture.width > window_width) {
         player->position.x = window_width - player->texture.width;
         }
-        if (enemy->position.x >=window_width) {
-        enemy->speed.x = -enemy->speed.x;
+    for (int i = 0; i<=enemy_count; i++) {
+    
+        if (enemy[i].position.x >=window_width) {
+        enemy[i].speed.x = -enemy[i].speed.x;
         }
-        if (enemy->position.x<=0) {
-        enemy->speed.x = -enemy->speed.x;
+        if (enemy[i].position.x<=0) {
+        enemy[i].speed.x = -enemy[i].speed.x;
         }
+    }
 }
-void check_enemy_collision(player_t *player, player_t *enemy ){
+void check_enemy_collision(player_t *player, enemies_t *enemy, int enemy_count){
+    for (int i=0; i<=enemy_count; i++) {
+    
     
     Rectangle p =  {player->position.x-12.5, player->position.y-12.5, (float)player->texture.width,(float) player->texture.height};
-    Rectangle e = {enemy->position.x, enemy->position.y, (float)enemy->texture.width, (float)enemy->texture.height};
+    Rectangle e = {enemy[i].position.x, enemy[i].position.y, (float)enemy[i].texture.width, (float)enemy[i].texture.height};
 
     if (!CheckCollisionRecs(p, e)) return;
     float strength = 500;
@@ -84,4 +89,6 @@ void check_enemy_collision(player_t *player, player_t *enemy ){
     direction = Vector2Normalize(direction);
     player->knockback.x += strength*direction.x;
     player->knockback.y += strength*direction.y;
+    player->player_hp--;
+}
 }
