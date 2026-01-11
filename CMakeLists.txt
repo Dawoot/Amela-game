@@ -9,6 +9,7 @@ add_executable(Amela_game
   src/both.c
   src/collision.c
   src/top_lev.c
+  src/movement.c
 )
 target_include_directories(Amela_game PRIVATE include textures)
 
