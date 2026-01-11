@@ -1,11 +1,10 @@
 #include "top_lev.h"
 
-void player_movement(player_t *player, player_t *enemy, Vector2 *oldPosition){
+void player_movement(player_t *player, Vector2 *oldPosition){
         oldPosition->x = player->position.x;
         oldPosition->y = player->position.y;
         //Movement logic
         float dt = GetFrameTime();
-        enemy.position.x  = enemy.position.x+enemy.speed.x;
         if (IsKeyPressed(KEY_S) || IsKeyDown(KEY_S)) {
             player->speed.y = 0;
             player->speed.y = player->speed.y+100;

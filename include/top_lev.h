@@ -15,12 +15,14 @@
 
 
 extern int **map;
+
 typedef struct enemies{
     Vector2 position;
     Vector2 speed;
     Texture2D texture;
     int8_t hp;
 }enemies_t;
+
 typedef struct player{
     Vector2 position;
     Vector2 player_o;

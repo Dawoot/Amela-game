@@ -61,7 +61,7 @@ void check_map_boundry(player_t *player, enemies_t *enemy, int enemy_count){
         if (player->position.x + player->texture.width > window_width) {
         player->position.x = window_width - player->texture.width;
         }
-    for (int i = 0; i<=enemy_count; i++) {
+    for (int i = 0; i<enemy_count; i++) {
     
         if (enemy[i].position.x >=window_width) {
         enemy[i].speed.x = -enemy[i].speed.x;
@@ -72,9 +72,7 @@ void check_map_boundry(player_t *player, enemies_t *enemy, int enemy_count){
     }
 }
 void check_enemy_collision(player_t *player, enemies_t *enemy, int enemy_count){
-    for (int i=0; i<=enemy_count; i++) {
-    
-    
+    for (int i=0; i<enemy_count; i++) { 
     Rectangle p =  {player->position.x-12.5, player->position.y-12.5, (float)player->texture.width,(float) player->texture.height};
     Rectangle e = {enemy[i].position.x, enemy[i].position.y, (float)enemy[i].texture.width, (float)enemy[i].texture.height};
 
