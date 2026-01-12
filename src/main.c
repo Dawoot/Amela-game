@@ -21,13 +21,27 @@ int main(){
     int gridwidth = window_width/blocksize;
     int gridheight = (window_height)/blocksize;
     uint8_t level_counter = 0;
-
-
+    printf("gridheight: %d gridwidth: %d \n", gridheight, gridwidth);
+    int **position;
     initializetiledmap(gridwidth, gridheight);
+
+    position = (int **)malloc(gridheight*sizeof(int*));
+    if (position == NULL) {
+        printf("Bro something went wrong when initalizing memory for position\n");
+    }
+    for (int i = 0; i<gridheight ; i++) {
+        position[i] = (int*)malloc(gridwidth*sizeof(int*));
+        if (position[i] == NULL) {
+        printf("Something went wrong initalizing the memory of y position\n");
+        }
+    for (int x =0 ; x<gridwidth; x++) {
+    position[i][x] = 0;
+        }
+    }
     
     InitWindow(window_width, window_height, "Love to amela");
     
-    loadmap("../maps/map.bin", gridwidth, gridheight);
+    loadmap("../maps/map.bin", gridwidth, gridheight, position);
 
     Color palette[] = {BLUE, BROWN, RED, GREEN, PURPLE};
 
@@ -84,11 +98,13 @@ int main(){
     int enemy_count=0;
     for (int y=0; y<gridheight; y++) {
         for (int x =0; x<gridwidth; x++) {
-            if (map[y][x] == 7) {
-            player.position.x = x*blocksize; 
-            player.position.y = y*blocksize;
+            if (position[y][x] == 2) {
+            printf("Here is the y x coordinates of where position, y: %d  x: %d, positon: %d\n",y, x, position[y][x]);
+            player.position.x = x*player.texture.width; 
+            player.position.y = y*player.texture.height;
             }
-            if (map[y][x]==6) {
+            if (position[y][x]==1) {
+                printf("enemy_count:%d \n", enemy_count);
                 enemy_count++;
                 //Every increment add one to i 
                 //When we do blocks of enemies!
@@ -96,23 +112,25 @@ int main(){
         }
     }
     enemies = (enemies_t* )malloc((sizeof(enemies_t)*enemy_count));
+    enemy_count = 0;
+    for (int y=0; y<gridheight; y++) {
+        for (int x =0; x<gridwidth; x++) {
+            if (position[y][x] == 1) {
+                enemies[enemy_count].position.x = x*blocksize;
+                enemies[enemy_count].position.y = y*blocksize;
+                enemies[enemy_count].speed.x = 1.2;
+                enemies[enemy_count].texture = LoadTexture("../textures/Enemy.png");
+            enemy_count++;
+            printf("Here is the y x coordinates of where position, y: %d  x: %d\n",y, x);
+            
+            }
+        }
+    } 
     if (enemies == NULL) {
         printf("Enemy failed to allocate\n");
         exit(1);
     }
-    printf("Sizeof enemies: %lu", sizeof(enemies_t)*enemy_count);
-    enemy_count = 0;
-    for (int y=0; y<gridheight; y++) {
-        for (int x = 0; x<gridwidth; x++) {
-        if (map[y][x] == 6) {
-        enemies[enemy_count].position.x = x*blocksize;
-        enemies[enemy_count].position.y = y*blocksize;
-        enemies[enemy_count].speed.x = 1.2;
-        enemies[enemy_count].texture = LoadTexture("../textures/Enemy.png");
-        enemy_count++;
-        } 
-        }
-    }
+    printf("SIZEOF ENEMIES!: %lu\n", sizeof(enemies_t)*enemy_count);
 
     
     player.speed.x = 0;

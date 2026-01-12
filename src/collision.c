@@ -76,7 +76,7 @@ void check_enemy_collision(player_t *player, enemies_t *enemy, int enemy_count){
     Rectangle p =  {player->position.x-12.5, player->position.y-12.5, (float)player->texture.width,(float) player->texture.height};
     Rectangle e = {enemy[i].position.x, enemy[i].position.y, (float)enemy[i].texture.width, (float)enemy[i].texture.height};
 
-    if (!CheckCollisionRecs(p, e)) return;
+    if (CheckCollisionRecs(p, e)){
     float strength = 500;
     Vector2 p_c = {(float)(p.x + p.width *0.5), (float)(p.y + p.height*0.5)};
     Vector2 e_c = {(float)(e.x + e.width *0.5), (float)(e.y + e.height*0.5)};
@@ -88,5 +88,6 @@ void check_enemy_collision(player_t *player, enemies_t *enemy, int enemy_count){
     player->knockback.x += strength*direction.x;
     player->knockback.y += strength*direction.y;
     player->player_hp--;
-}
+        }
+    }
 }

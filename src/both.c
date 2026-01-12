@@ -5,7 +5,7 @@ int **map = NULL;
 //initializes the memory for maping
 
 
-void loadmap(char *filename, int gridwidth, int gridheight){
+void loadmap(char *filename, int gridwidth, int gridheight, int **position){
     FILE *file;
     file = fopen(filename, "rb");
     if (file == NULL) {
@@ -20,6 +20,9 @@ void loadmap(char *filename, int gridwidth, int gridheight){
     }
     for (int i = 0; i<gridheight; i++) {
     fread(map[i], sizeof(int), gridwidth, file);    
+    }
+    for (int i = 0; i<gridheight; i++) {
+    fread(position[i], sizeof(int), gridwidth, file);
     }
     fclose(file);
 }

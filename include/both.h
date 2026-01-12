@@ -6,7 +6,7 @@
 
 
 void initializetiledmap(int gridwidth, int gridheight);
-void loadmap(char *filename, int gridwidth, int gridheight);
+void loadmap(char *filename, int gridwidth, int gridheight,int **position);
 void save(char *s, int gridwidth, int gridheight);
 void freemapmem(int gridwidth, int gridheight);
 
