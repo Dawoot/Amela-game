@@ -1,10 +1,10 @@
 #include "top_lev.h"
+#include <raylib.h>
 
-void player_movement(player_t *player, Vector2 *oldPosition){
+void player_movement(player_t *player, Vector2 *oldPosition, float dt){
         oldPosition->x = player->position.x;
         oldPosition->y = player->position.y;
         //Movement logic
-        float dt = GetFrameTime();
         if (IsKeyPressed(KEY_S) || IsKeyDown(KEY_S)) {
             player->speed.y = 0;
             player->speed.y = player->speed.y+100;
@@ -28,5 +28,11 @@ void player_movement(player_t *player, Vector2 *oldPosition){
             player->speed.y =player->speed.y-100;
             if (player->speed.y<=-100) player->speed.y=-100;
             player->player_r = 270;
+        }
+        if (IsKeyPressed(KEY_SPACE) || IsKeyDown(KEY_SPACE)) {
+            if (player->attack_timer <= 0) {
+            player->attack = true;
+            player->attack_timer = 0.25f;
+            }
         }
 }

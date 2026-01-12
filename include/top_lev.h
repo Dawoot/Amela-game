@@ -31,8 +31,11 @@ typedef struct player{
     Texture2D texture;
     Rectangle player_s;
     Rectangle player_d;
+    float attack_timer;
+    float i_frame;
     int player_r;
     int8_t player_hp;
+    bool attack;
 }player_t;
 
 

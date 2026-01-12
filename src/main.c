@@ -140,6 +140,7 @@ int main(){
     Vector2 oldPosition = player.position;
     Vector2 newPosition = player.position;
     while (!WindowShouldClose()) {
+        float dt = GetFrameTime();
         if (player.player_hp <= 0) {
             player.position.x = 25;
             player.position.y = 25;
@@ -148,7 +149,7 @@ int main(){
         if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
             player.position = newPosition;
         }
-        player_movement(&player,&oldPosition);
+        player_movement(&player,&oldPosition, dt);
         for (int i = 0; i<enemy_count; i++) {
             enemies[i].position.x = enemies[i].position.x + enemies[i].speed.x;
         }
@@ -156,7 +157,6 @@ int main(){
         Vector2 final = {player.knockback.x + player.speed.x, player.speed.y + player.knockback.y};
         player.knockback.x = player.knockback.x * 0.9f;
         player.knockback.y = player.knockback.y * 0.9f;
-        float dt = GetFrameTime();
         
         newPosition.x = newPosition.x + final.x*dt;
         newPosition.y = newPosition.y + final.y*dt;
