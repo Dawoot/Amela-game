@@ -19,7 +19,6 @@ extern int **map;
 typedef struct enemies{
     Vector2 position;
     Vector2 speed;
-    Texture2D texture;
     int8_t hp;
 }enemies_t;
 
@@ -29,6 +28,7 @@ typedef struct player{
     Vector2 speed;
     Vector2 knockback;
     Texture2D texture;
+    Texture2D weapon_texture;
     Rectangle player_s;
     Rectangle player_d;
     float attack_timer;
