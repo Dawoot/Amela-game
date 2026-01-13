@@ -71,10 +71,10 @@ void check_map_boundry(player_t *player, enemies_t *enemy, int enemy_count){
         }
     }
 }
-void check_enemy_collision(player_t *player, enemies_t *enemy, int enemy_count){
+void check_enemy_collision(player_t *player, enemies_t *enemy, int enemy_count, Texture *enemy_t){
     for (int i=0; i<enemy_count; i++) { 
     Rectangle p =  {player->position.x-12.5, player->position.y-12.5, (float)player->texture.width,(float) player->texture.height};
-    Rectangle e = {enemy[i].position.x, enemy[i].position.y, (float)enemy[i].texture.width, (float)enemy[i].texture.height};
+    Rectangle e = {enemy[i].position.x, enemy[i].position.y, (float)enemy_t->width, (float)enemy_t->height};
 
     if (CheckCollisionRecs(p, e)){
     float strength = 500;

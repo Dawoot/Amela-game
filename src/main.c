@@ -50,6 +50,7 @@ int main(){
     Image m_wood = LoadImage("../textures/magic_wood.png");
     Image ocean = LoadImage("../textures/ocean.png");
     Image mountain = LoadImage("../textures/mountain.png");
+    Image sword = LoadImage("../textures/sword.png");
 
     player_t player;
     enemies_t *enemies; 
@@ -63,6 +64,7 @@ int main(){
     ImageResizeNN(&m_wood, m_wood.width * TEXTURE_MUL, m_wood.height * TEXTURE_MUL);
     ImageResizeNN(&ocean, ocean.width * TEXTURE_MUL, ocean.height* TEXTURE_MUL);
     ImageResizeNN(&mountain, mountain.width * TEXTURE_MUL, mountain.height * TEXTURE_MUL);
+    ImageResizeNN(&sword, sword.width * TEXTURE_MUL, sword.height * TEXTURE_MUL); 
     
     SetTargetFPS(FPS);
     
@@ -73,6 +75,15 @@ int main(){
     Texture mountain_t = LoadTextureFromImage(mountain);
     Texture heart_f = LoadTexture("../textures/heart.png");
     Texture heart_e = LoadTexture("../textures/empty_heart.png");
+    Texture enemy_t = LoadTexture("../textures/Enemy.png");
+    player.weapon_texture = LoadTextureFromImage(sword);
+
+    UnloadImage(dirt);
+    UnloadImage(lava);
+    UnloadImage(m_wood);
+    UnloadImage(ocean);
+    UnloadImage(mountain);
+    UnloadImage(sword);
 
     Rectangle **rect;
     Texture list[] = {dirt_t, lava_t, m_wood_t, ocean_t, mountain_t};
@@ -95,16 +106,15 @@ int main(){
     printf("Error: rect is not allocated\n");
     return 1;
     }
+    
     int enemy_count=0;
     for (int y=0; y<gridheight; y++) {
         for (int x =0; x<gridwidth; x++) {
             if (position[y][x] == 2) {
-            printf("Here is the y x coordinates of where position, y: %d  x: %d, positon: %d\n",y, x, position[y][x]);
             player.position.x = x*player.texture.width; 
             player.position.y = y*player.texture.height;
             }
             if (position[y][x]==1) {
-                printf("enemy_count:%d \n", enemy_count);
                 enemy_count++;
                 //Every increment add one to i 
                 //When we do blocks of enemies!
@@ -119,9 +129,7 @@ int main(){
                 enemies[enemy_count].position.x = x*blocksize;
                 enemies[enemy_count].position.y = y*blocksize;
                 enemies[enemy_count].speed.x = 1.2;
-                enemies[enemy_count].texture = LoadTexture("../textures/Enemy.png");
             enemy_count++;
-            printf("Here is the y x coordinates of where position, y: %d  x: %d\n",y, x);
             
             }
         }
@@ -139,9 +147,11 @@ int main(){
 
     Vector2 oldPosition = player.position;
     Vector2 newPosition = player.position;
+
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
         if (player.player_hp <= 0) {
+
             player.position.x = 25;
             player.position.y = 25;
             player.player_hp = MAX_HP;
@@ -153,7 +163,7 @@ int main(){
         for (int i = 0; i<enemy_count; i++) {
             enemies[i].position.x = enemies[i].position.x + enemies[i].speed.x;
         }
-        check_enemy_collision(&player, enemies, enemy_count);
+        check_enemy_collision(&player, enemies, enemy_count, &enemy_t);
         Vector2 final = {player.knockback.x + player.speed.x, player.speed.y + player.knockback.y};
         player.knockback.x = player.knockback.x * 0.9f;
         player.knockback.y = player.knockback.y * 0.9f;
@@ -162,11 +172,21 @@ int main(){
         newPosition.y = newPosition.y + final.y*dt;
         
         check_map_boundry(&player, enemies, enemy_count); 
+
         player.speed.x = 0;
         player.speed.y = 0;
+        if (player.attack) {
+            player.attack_timer -=dt;
+            if (player.attack_timer<=0) {
+                player.attack = false;
+                player.attack_timer = 0;
+            
+            }
+        }
         BeginDrawing();
         //Rendering logic
         ClearBackground(RAYWHITE);
+
         for (int y = 0; y<gridheight; y++) {
         for (int x = 0; x<gridwidth; x++) {
                 if (map[y][x] >0 && map[y][x]!= 6 && map[y][x]!= 7) {
@@ -179,26 +199,45 @@ int main(){
                 }
             }
         }
+
         for (int i = 0; i<player.player_hp; i++) {
             DrawTexture(heart_f, 0+(heart_f.width*i), 0, WHITE);
         }
         for (int i=MAX_HP; i>player.player_hp; i--) {
             DrawTexture(heart_e, 0+(heart_e.width*(i-1)), 0, WHITE);
         }
+        
         player.player_d = (Rectangle){player.position.x, player.position.y, player.texture.width, player.texture.height};
-        DrawTexturePro(player.texture, player.player_s, player.player_d,player.player_o,player.player_r, WHITE);
+        
+        if (player.attack) {
+            Vector2 sword_r = {
+                cosf(player.player_r * DEG2RAD),
+                sinf(player.player_r * DEG2RAD)};
+            Rectangle sword_dest = {
+                player.position.x + 6 * sword_r.x, 
+                player.position.y + 6 * sword_r.y, 
+                player.weapon_texture.width,
+                player.weapon_texture.height};
+
+            DrawTexturePro(player.weapon_texture, (Rectangle){0.0f, 0.0f, player.weapon_texture.width, player.weapon_texture.height}, sword_dest , (Vector2) {0.0f, player.weapon_texture.height/2}, player.player_r, WHITE);
+        }
+
+        DrawTexturePro(player.texture, player.player_s, player.player_d,player.player_o,player.player_r, WHITE); 
+
         for (int i=0; i<enemy_count; i++) {
-        DrawTexture(enemies[i].texture, enemies[i].position.x,enemies[i].position.y , WHITE);
+        DrawTexture(enemy_t, enemies[i].position.x,enemies[i].position.y , WHITE);
         }
         EndDrawing();
     }
     freemapmem(gridwidth, gridheight);
     freerectmem(rect, gridheight);
     free(enemies);
-    UnloadTexture(player.texture);
-    for (int i =0; i<enemy_count; i++) {
-        UnloadTexture(enemies[i].texture); 
+    for (int i =0; i<(sizeof(list)/sizeof(list[0])); i++) {
+        UnloadTexture(list[i]);
     }
+    UnloadTexture(player.texture);
+    UnloadTexture(enemy_t);
+    UnloadTexture(player.weapon_texture);
     CloseWindow();
     return 0;
 }

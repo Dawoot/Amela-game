@@ -1,5 +1,7 @@
 #include "top_lev.h"
+#include <math.h>
 #include <raylib.h>
+#include <stdio.h>
 
 void player_movement(player_t *player, Vector2 *oldPosition, float dt){
         oldPosition->x = player->position.x;
@@ -29,10 +31,8 @@ void player_movement(player_t *player, Vector2 *oldPosition, float dt){
             if (player->speed.y<=-100) player->speed.y=-100;
             player->player_r = 270;
         }
-        if (IsKeyPressed(KEY_SPACE) || IsKeyDown(KEY_SPACE)) {
-            if (player->attack_timer <= 0) {
+        if (IsKeyPressed(KEY_SPACE) && !player->attack){
             player->attack = true;
-            player->attack_timer = 0.25f;
-            }
+            player->attack_timer = 0.2f;
         }
 }
