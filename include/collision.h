@@ -13,6 +13,8 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
 bool isSolidTile(int tileType);
 void check_map_boundry(player_t *player, enemies_t *enemy, int enemy_count);
 void check_enemy_collision(player_t *player, enemies_t *enemy, int enemy_count, Texture *enemy_t);
+int check_weapon_attack(player_t *p, enemies_t *e, int e_c, Texture *enemy_t);
+
 
 #endif // COLLISION_H
 

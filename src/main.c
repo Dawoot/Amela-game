@@ -129,6 +129,7 @@ int main(){
                 enemies[enemy_count].position.x = x*blocksize;
                 enemies[enemy_count].position.y = y*blocksize;
                 enemies[enemy_count].speed.x = 1.2;
+                printf("Y_position enemy: %.1f\n", enemies[enemy_count].position.y);
             enemy_count++;
             
             }
@@ -176,6 +177,7 @@ int main(){
         player.speed.x = 0;
         player.speed.y = 0;
         if (player.attack) {
+            enemy_count = check_weapon_attack(&player, enemies,enemy_count,&enemy_t);
             player.attack_timer -=dt;
             if (player.attack_timer<=0) {
                 player.attack = false;

@@ -1,6 +1,7 @@
 #include "collision.h"
 #include "top_lev.h"
 #include <raylib.h>
+#include <stdio.h>
 
 bool isSolidTile(int tileType) {
     switch(tileType) {
@@ -44,7 +45,23 @@ bool checkMapCollision(Vector2 newPosition, Texture2D playerTexture, Rectangle *
     } 
     return false; 
 }
-
+int check_weapon_attack(player_t *p, enemies_t *e, int e_c, Texture *enemy_t){
+    Vector2 so = {(p->player_r  * DEG2RAD), (p->player_r * DEG2RAD)}; 
+    Rectangle s_r = {p->position.x + 6 * so.x, p->position.y + 6 * so.y, p->weapon_texture.width, p->weapon_texture.height};
+    for(int i = 0; i<e_c; i++){
+        Rectangle e_r = {e[i].position.x,e[i].position.y,(float)enemy_t->width, (float) enemy_t->height};
+        if (CheckCollisionRecs(s_r, e_r)) {
+            printf("X an y: %0.1f %0.1f\n", e[i].position.x, e[i].position.y);
+            if (i<e_c -1) {
+                for (int x =i; x<e_c; x++) {
+                    e[x] = e[x+1];
+                }
+            }
+            e_c = e_c -1;
+        }
+    } 
+    return e_c;
+}
 void check_map_boundry(player_t *player, enemies_t *enemy, int enemy_count){
     
         if (player->position.y<0) {
@@ -64,8 +81,7 @@ void check_map_boundry(player_t *player, enemies_t *enemy, int enemy_count){
     for (int i = 0; i<enemy_count; i++) {
     
         if (enemy[i].position.x >=window_width) {
-        enemy[i].speed.x = -enemy[i].speed.x;
-        }
+        enemy[i].speed.x = -enemy[i].speed.x; }
         if (enemy[i].position.x<=0) {
         enemy[i].speed.x = -enemy[i].speed.x;
         }
