@@ -2,8 +2,6 @@
 #include "both.h"
 #include "collision.h"
 #include "movement.h"
-#include <raylib.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 #define _GNU_SOURCE
@@ -17,33 +15,30 @@ void freerectmem(Rectangle **rect, int gridheight) {
     free(rect);
 }
 int main(){
-    
-    int gridwidth = window_width/blocksize;
-    int gridheight = (window_height)/blocksize;
+    map_t *map = (map_t*)malloc(sizeof(map_t)); 
+    map->gridwidth = window_width/blocksize;
+    map->gridheight = (window_height)/blocksize;
     uint8_t level_counter = 0;
-    printf("gridheight: %d gridwidth: %d \n", gridheight, gridwidth);
-    int **position;
-    initializetiledmap(gridwidth, gridheight);
+    printf("gridheight: %d gridwidth: %d \n", map->gridheight, map->gridwidth);
+    initializetiledmap(map);
 
-    position = (int **)malloc(gridheight*sizeof(int*));
-    if (position == NULL) {
+    map->position = (int **)malloc(map->gridheight*sizeof(int*));
+    if (map->position == NULL) {
         printf("Bro something went wrong when initalizing memory for position\n");
     }
-    for (int i = 0; i<gridheight ; i++) {
-        position[i] = (int*)malloc(gridwidth*sizeof(int*));
-        if (position[i] == NULL) {
+    for (int i = 0; i<map->gridheight ; i++) {
+        map->position[i] = (int*)malloc(map->gridwidth*sizeof(int*));
+        if (map->position[i] == NULL) {
         printf("Something went wrong initalizing the memory of y position\n");
         }
-    for (int x =0 ; x<gridwidth; x++) {
-    position[i][x] = 0;
+    for (int x =0 ; x<map->gridwidth; x++) {
+    map->position[i][x] = 0;
         }
     }
     
     InitWindow(window_width, window_height, "Love to amela");
     
-    loadmap("../maps/map.bin", gridwidth, gridheight, position);
-
-    Color palette[] = {BLUE, BROWN, RED, GREEN, PURPLE};
+    loadmap("../maps/map.bin",map);
 
     Image dirt = LoadImage("../textures/dirt.png");
     Image lava = LoadImage("../textures/lava.png");
@@ -89,13 +84,13 @@ int main(){
     Texture list[] = {dirt_t, lava_t, m_wood_t, ocean_t, mountain_t};
     Rectangle source = {0.0f, 0.0f, 25.0, 25.0};
     Vector2 origin = {0.0f,0.0f};
-    rect = (Rectangle **)malloc(sizeof(Rectangle*)*gridheight);
+    rect = (Rectangle **)malloc(sizeof(Rectangle*)*map->gridheight);
 
-    for (int x = 0; x<gridheight; x++) {
-        rect[x]  = (Rectangle*)malloc(sizeof(Rectangle)*gridwidth);
+    for (int x = 0; x<map->gridheight; x++) {
+        rect[x]  = (Rectangle*)malloc(sizeof(Rectangle)*map->gridwidth);
     }
-    for (int y = 0; y<gridheight; y++) {
-        for (int x = 0; x<gridwidth; x++) {
+    for (int y = 0; y<map->gridheight; y++) {
+        for (int x = 0; x<map->gridwidth; x++) {
             Rectangle temp = {(float)x * blocksize, (float)y * blocksize, (float)blocksize, (float)blocksize};
             rect[y][x] = temp;
         }
@@ -108,13 +103,13 @@ int main(){
     }
     
     int enemy_count=0;
-    for (int y=0; y<gridheight; y++) {
-        for (int x =0; x<gridwidth; x++) {
-            if (position[y][x] == 2) {
+    for (int y=0; y<map->gridheight; y++) {
+        for (int x =0; x<map->gridwidth; x++) {
+            if (map->position[y][x] == 2) {
             player.position.x = x*player.texture.width; 
             player.position.y = y*player.texture.height;
             }
-            if (position[y][x]==1) {
+            if (map->position[y][x]==1) {
                 enemy_count++;
                 //Every increment add one to i 
                 //When we do blocks of enemies!
@@ -123,9 +118,9 @@ int main(){
     }
     enemies = (enemies_t* )malloc((sizeof(enemies_t)*enemy_count));
     enemy_count = 0;
-    for (int y=0; y<gridheight; y++) {
-        for (int x =0; x<gridwidth; x++) {
-            if (position[y][x] == 1) {
+    for (int y=0; y<map->gridheight; y++) {
+        for (int x =0; x<map->gridwidth; x++) {
+            if (map->position[y][x] == 1) {
                 enemies[enemy_count].position.x = x*blocksize;
                 enemies[enemy_count].position.y = y*blocksize;
                 enemies[enemy_count].speed.x = 1.2;
@@ -157,7 +152,7 @@ int main(){
             player.position.y = 25;
             player.player_hp = MAX_HP;
         }
-        if (!checkMapCollision(newPosition, player.texture, rect, gridwidth, gridheight, blocksize)) {
+        if (!checkMapCollision(newPosition, player.texture, rect, map->gridwidth, map->gridheight, blocksize)) {
             player.position = newPosition;
         }
         player_movement(&player,&oldPosition, dt);
@@ -189,14 +184,14 @@ int main(){
         //Rendering logic
         ClearBackground(RAYWHITE);
 
-        for (int y = 0; y<gridheight; y++) {
-        for (int x = 0; x<gridwidth; x++) {
-                if (map[y][x] >0 && map[y][x]!= 6 && map[y][x]!= 7) {
+        for (int y = 0; y<map->gridheight; y++) {
+        for (int x = 0; x<map->gridwidth; x++) {
+                if (map->map[y][x] >0 && map->map[y][x]!= 6 && map->map[y][x]!= 7) {
                     
 
                     DrawRectangleRec(rect[y][x], WHITE);
                     Rectangle dest ={x*blocksize, y*blocksize,25.0,25.0};
-                    DrawTexturePro(list[map[y][x]-1],source, dest,(Vector2){0.0f, 0.0f},0.0f ,WHITE);
+                    DrawTexturePro(list[map->map[y][x]-1],source, dest,(Vector2){0.0f, 0.0f},0.0f ,WHITE);
 
                 }
             }
@@ -231,8 +226,8 @@ int main(){
         }
         EndDrawing();
     }
-    freemapmem(gridwidth, gridheight);
-    freerectmem(rect, gridheight);
+    freemapmem(map);
+    freerectmem(rect, map->gridheight);
     free(enemies);
     for (int i =0; i<(sizeof(list)/sizeof(list[0])); i++) {
         UnloadTexture(list[i]);

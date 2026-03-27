@@ -5,11 +5,7 @@ project(Amela_game C)
 set(CMAKE_EXPORT_COMPILE_COMMAND ON)
 
 add_executable(Amela_game
-  src/main.c
-  src/both.c
-  src/collision.c
-  src/top_lev.c
-  src/movement.c
+  src/*
 )
 target_include_directories(Amela_game PRIVATE include textures)
 

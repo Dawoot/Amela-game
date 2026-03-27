@@ -14,13 +14,22 @@
 #define MAX_HP 5
 
 
-extern int **map;
 
 typedef struct enemies{
     Vector2 position;
     Vector2 speed;
     int8_t hp;
 }enemies_t;
+
+
+typedef struct{
+    int gridwidth;
+    int gridheight;
+    int e_c;
+    int **map;
+    int **position;
+    enemies_t enemies;
+}map_t;
 
 typedef struct player{
     Vector2 position;

@@ -5,9 +5,9 @@
 #define TEXTURE_MUL 5
 
 
-void initializetiledmap(int gridwidth, int gridheight);
-void loadmap(char *filename, int gridwidth, int gridheight,int **position);
-void save(char *s, int gridwidth, int gridheight);
-void freemapmem(int gridwidth, int gridheight);
+void initializetiledmap(map_t *maps);
+void loadmap(char *filename,map_t *maps);
+void save(char *s, map_t *maps);
+void freemapmem(map_t *maps);
 
 #endif
